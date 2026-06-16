@@ -18,3 +18,5 @@ tests/libduckdb.dylib
 # ralph loop progress tracking
 progress.txt
 deferred.txt
+
+.pi/agents/

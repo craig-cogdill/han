@@ -1,0 +1,76 @@
+[tasks."agents:link"]
+description = "Symlink han agents into ~/.pi/agent/agents/ for pi-subagents discovery (works from any repo)"
+dir = "{{config_root}}"
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+SOURCE_DIR="{{config_root}}/plugin-pi/agents"
+TARGET_DIR="$HOME/.pi/agent/agents"
+mkdir -p "$TARGET_DIR"
+for agent in "$SOURCE_DIR"/*.md; do
+  name=$(basename "$agent")
+  link="$TARGET_DIR/$name"
+  if [ -L "$link" ]; then
+    existing=$(readlink "$link")
+    if [ "$existing" = "$agent" ]; then
+      echo "  ✓ $name (already linked)"
+      continue
+    else
+      echo "  ↻ $name (relinking, old target: $existing)"
+      rm "$link"
+    fi
+  elif [ -e "$link" ]; then
+    echo "  ⚠ $name (skipped: regular file exists, not overwriting)"
+    continue
+  fi
+  ln -s "$agent" "$link"
+  echo "  + $name"
+done
+echo
+echo "Done. Run 'mise run agents:unlink' to remove."
+"""
+
+[tasks.build]
+description = "Generate plugin-pi/ from upstream plugin/ and inject model frontmatter"
+dir = "{{config_root}}"
+run = ["scripts/build-pi-plugin.sh", "scripts/update-pi-models.sh"]
+
+[tasks."models:report"]
+description = "Report recommended model tier for each skill based on dispatched agents"
+dir = "{{config_root}}"
+run = "scripts/skill-models.sh"
+
+[tasks."models:update"]
+description = "Inject model frontmatter into plugin-pi/skills based on agent tiers (set POWERFUL_MODEL, DEFAULT_MODEL, LITE_MODEL env vars)"
+dir = "{{config_root}}"
+run = "scripts/skill-models.sh --update"
+
+[tasks."agents:unlink"]
+description = "Remove symlinked han agents from ~/.pi/agent/agents/"
+dir = "{{config_root}}"
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+SOURCE_DIR="{{config_root}}/plugin-pi/agents"
+TARGET_DIR="$HOME/.pi/agent/agents"
+for agent in "$SOURCE_DIR"/*.md; do
+  name=$(basename "$agent")
+  link="$TARGET_DIR/$name"
+  if [ -L "$link" ]; then
+    existing=$(readlink "$link")
+    if [ "$existing" = "$agent" ]; then
+      rm "$link"
+      echo "  − $name"
+    else
+      echo "  ⚠ $name (skipped: symlink points elsewhere: $existing)"
+    fi
+  fi
+done
+# Remove empty directory if no other agents remain
+if [ -d "$TARGET_DIR" ] && [ -z "$(ls -A "$TARGET_DIR" 2>/dev/null)" ]; then
+  rmdir "$TARGET_DIR"
+  echo "  removed empty $TARGET_DIR"
+fi
+echo
+echo "Done."
+"""
