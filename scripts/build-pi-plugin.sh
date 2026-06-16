@@ -11,21 +11,30 @@
 #   git commit -m "rebuild plugin-pi from upstream <version>"
 #
 # What this script does:
-#   1. Copies han.core/skills/ and han.core/agents/ into plugin-pi/
-#   2. Copies han.core/references/ into plugin-pi/ (cross-skill reference files)
-#   3. Agent .md files are copied verbatim — pi-subagents supports the "model:"
+#   1. Copies skills from han.core, han.coding, han.planning, han.github,
+#      and han.reporting into plugin-pi/skills/ (full han meta-plugin bundle);
+#      copies han.core/agents/ and han.core/references/ into plugin-pi/
+#   2. Agent .md files are copied verbatim — pi-subagents supports the "model:"
 #      frontmatter field and resolves bare aliases (opus/sonnet/haiku) natively.
-#   4. Transforms skill SKILL.md files for pi.dev compatibility:
+#   3. Transforms skill SKILL.md files for pi.dev compatibility:
 #      - Replaces "Agent" with "subagent" in allowed-tools frontmatter
 #      - Replaces Agent tool references in skill bodies with subagent tool
 #      - Replaces run_in_background: true with async: true
-#      - Replaces model override strings in skill bodies
-#      - Replaces /code-review with /skill:code-review in gh-pr-review
+#      - Removes the Claude Code-only Skill tool from allowed-tools
+#      - Replaces /code-review with /skill:code-review in post-code-review-to-pr
 #
-# Known limitation: skills that call ${CLAUDE_SKILL_DIR}/scripts/*.sh use a
-# Claude Code-specific environment variable. These script calls are left as-is;
-# pi.dev users will need to ensure CLAUDE_SKILL_DIR is set to the skill's
-# directory, or manually update those references.
+# Known limitation: the following skills invoke shell scripts via
+# ${CLAUDE_SKILL_DIR}/scripts/, which is a Claude Code-specific env var.
+# Pi sets no equivalent, so these script calls will not resolve at runtime:
+#   code-review          detect-review-context.sh
+#   tdd                  detect-tdd-context.sh
+#   refactor             detect-refactor-context.sh
+#   test-planning        detect-test-context.sh
+#   post-code-review-to-pr  pr-metadata.sh, create-review-tempfile.sh,
+#                           post-pr-comment.sh, post-pr-review.sh
+#   work-items-to-issues    publish-work-items.sh
+#   html-summary            inline-mermaid.sh
+# If pi exposes a skill-directory variable in the future, add a transform here.
 
 set -euo pipefail
 
@@ -41,6 +50,16 @@ rm -rf "${PLUGIN_PI}/skills" "${PLUGIN_PI}/agents" "${PLUGIN_PI}/references"
 cp -r "${PLUGIN_SRC}/skills"     "${PLUGIN_PI}/skills"
 cp -r "${PLUGIN_SRC}/agents"     "${PLUGIN_PI}/agents"
 cp -r "${PLUGIN_SRC}/references" "${PLUGIN_PI}/references"
+
+# Copy skills from the rest of the han meta-plugin bundle (han.coding,
+# han.planning, han.github, han.reporting). Each skill directory is
+# self-contained with its own references/ so no plugin-level references need
+# to be merged.
+for plugin in han.coding han.planning han.github han.reporting; do
+  if [ -d "${REPO_ROOT}/${plugin}/skills" ]; then
+    cp -r "${REPO_ROOT}/${plugin}/skills"/. "${PLUGIN_PI}/skills/"
+  fi
+done
 
 # ── Step 1b: Sync version from plugin/.claude-plugin/plugin.json ─────────────
 
@@ -88,16 +107,20 @@ find "${PLUGIN_PI}/skills" -name "SKILL.md" | while read -r f; do
   #     pi-subagents: async: true
   sed -i '' 's/run_in_background: true/async: true/g' "$f"
 
+  # 3f. Remove the Claude Code-only Skill tool from allowed-tools.
+  #     pi has no Skill tool; the transform handles Skill in any list position.
+  perl -i -pe 'if (/^allowed-tools:/) { s/,\s*Skill\b//g; s/\bSkill\b,\s*//g }' "$f"
+
   # Model override strings in skill bodies (e.g. model: "sonnet") are left as-is.
   # pi-subagents resolves bare aliases against the configured provider.
 done
 
 # ── Step 4: Skill-specific patches ───────────────────────────────────────────
 
-# gh-pr-review invokes /code-review by slash command; update to pi.dev syntax.
-GH_PR_REVIEW="${PLUGIN_PI}/skills/gh-pr-review/SKILL.md"
-if [ -f "$GH_PR_REVIEW" ]; then
-  sed -i '' 's|/code-review|/skill:code-review|g' "$GH_PR_REVIEW"
+# post-code-review-to-pr invokes /code-review by slash command; update to pi.dev syntax.
+POST_CODE_REVIEW="${PLUGIN_PI}/skills/post-code-review-to-pr/SKILL.md"
+if [ -f "$POST_CODE_REVIEW" ]; then
+  sed -i '' 's|/code-review|/skill:code-review|g' "$POST_CODE_REVIEW"
 fi
 
 # ── Done ──────────────────────────────────────────────────────────────────────
