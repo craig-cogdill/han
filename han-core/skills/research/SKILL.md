@@ -3,7 +3,7 @@ name: "research"
 description: "Researches an open-ended question — options, possible solutions, prior art, trade-offs, or how something works — and produces a durable, evidence-backed, adversarially-validated report that recommends an option without committing the team to any artifact. Use when you want to research approaches, weigh options, survey prior art or the state of the art, or understand how something works before committing to a direction. Does not diagnose a bug, failure, or root cause — use investigate. Does not specify a feature — use plan-a-feature. Does not create or update a coding standard — use coding-standard. Does not compare two concrete artifacts for gaps — use gap-analysis. Does not assess an existing module's architecture — use architectural-analysis. Does not capture feedback on Han's own skills — use han-feedback."
 arguments: size
 argument-hint: "[size: small | medium | large] [the open-ended question to research] [optional output path] [optional: \"evidence optional\" / \"exploratory\" to relax the evidence requirement]"
-allowed-tools: Read, Glob, Grep, Agent, WebSearch, WebFetch, Bash(find *)
+allowed-tools: Read, Glob, Grep, Agent, Bash(ketch *), Bash(find *)
 ---
 
 ## Project Context
