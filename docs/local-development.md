@@ -1,20 +1,17 @@
 # Local Development
 
-Test skill changes locally before pushing to a PR by using your local repo clone as a marketplace source. Changes on your branch are immediately available in any Claude instance on your machine.
+Test skill changes locally before pushing to a PR by using your local repo clone as a marketplace source. Changes on
+your branch are immediately available in any Claude instance on your machine.
 
 ## Setup
 
-### 1. Install the git hook
+### 1. Set up the repo
 
-Run this once after cloning:
+If you have not already, follow [Setting up your environment](../CONTRIBUTING.md#setting-up-your-environment) in the
+contributor guide. One `npm install` pins the dev tools locally, and `npx prek install` wires up the pre-commit hooks.
 
-```bash
-./install-hooks.sh
-```
-
-This installs a pre-push hook that automatically rebuilds `dist/claude-marketplace/` and `marketplace.json` before each push.
-
-If the hook finds that those generated files changed, it commits them and asks you to push again, so the generated commit is included.
+There is no build step. The marketplace manifest at `.claude-plugin/marketplace.json` is checked in and read as it is,
+so nothing has to be generated before Claude Code can see your plugins.
 
 ### 2. Open Claude from the repo root
 
@@ -47,19 +44,41 @@ If you previously installed `testdouble/han` from GitHub, remove it so it doesn'
 3. Find and select the plugin you want to test
 4. Install it in **user scope** so it's available across all your Claude instances, not only this project
 
+### Doing it from the command line
+
+The `/plugin` steps above have `claude plugin` equivalents, which are quicker when you already know what you want:
+
+```bash
+claude plugin marketplace add ./                     # step 4, from the repo root
+claude plugin install han-coding@han --scope user    # step 5, one plugin
+claude plugin list                                   # what is installed now
+claude plugin details han-coding@han                 # component inventory and token cost
+claude plugin uninstall han-coding@han               # remove it again
+claude plugin marketplace remove han                 # remove the local marketplace
+```
+
+`claude plugin validate <path>` checks a plugin or marketplace manifest without installing anything.
+
 ## Workflow
 
-Once installed, your local marketplace points at your working tree. Any changes you make to skill files (`SKILL.md`, references, scripts) are picked up immediately. No reinstall needed. This means you can:
+Once installed, your local marketplace points at your working tree. Any changes you make to skill files (`SKILL.md`,
+references, scripts) are picked up immediately. No reinstall needed. This means you can:
 
 1. Edit a skill on your branch
 2. Open (or switch to) any Claude instance
 3. Run the skill and see your changes
 
-When you're done testing, remove the local marketplace and re-add the remote `testdouble/han` source to go back to the published versions.
+When you're done testing, remove the local marketplace and re-add the remote `testdouble/han` source to go back to the
+published versions.
 
 ## Quicker alternatives
 
-The local-marketplace setup above is the canonical Han workflow because it mirrors how users install the suite. For quick, throwaway iteration, Claude Code also supports two lighter approaches documented in the official [Create Plugins](https://code.claude.com/docs/en/plugins) guide:
+The local-marketplace setup above is the canonical Han workflow because it mirrors how users install the suite. For
+quick, throwaway iteration, Claude Code also supports two lighter approaches documented in the official
+[Create Plugins](https://code.claude.com/docs/en/plugins) guide:
 
-- **`claude --plugin-dir ./han-core`** loads a single plugin directory for one session with no marketplace or install step. Useful for a fast check of one plugin's changes.
-- **`/reload-plugins`** reloads skills, agents, hooks, and plugin MCP/LSP servers without restarting. Changes to a `SKILL.md` body are picked up immediately by the running session. Changes to agents, hooks, and MCP servers need `/reload-plugins` (or a restart) to take effect.
+- **`claude --plugin-dir ./han-core`** loads a single plugin directory for one session with no marketplace or install
+  step. Useful for a fast check of one plugin's changes.
+- **`/reload-plugins`** reloads skills, agents, hooks, and plugin MCP/LSP servers without restarting. Changes to a
+  `SKILL.md` body are picked up immediately by the running session. Changes to agents, hooks, and MCP servers need
+  `/reload-plugins` (or a restart) to take effect.

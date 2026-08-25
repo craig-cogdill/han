@@ -5,11 +5,28 @@ paths:
 
 # Claude Cowork — Complete Reference
 
+## Contents
+
+- What is Cowork?
+- What Cowork Can Do
+- Cowork vs. Claude Code: Extension Model
+- Skills in Cowork
+- Skill File Format
+- Skill Directory Structure
+- How Skills Load (Progressive Disclosure)
+- Cowork Runtime Environment
+- Authoring Best Practices
+- Checklist Before Uploading a Skill
+- Resources
+
 ## What is Cowork?
 
-Claude Cowork is Anthropic's agentic AI system for knowledge workers (not developers), available as a research preview in the Claude Desktop app (Mac/Windows) and claude.ai. Unlike Claude Chat (one prompt → one response), Cowork autonomously plans and executes multi-step tasks on your local machine.
+Claude Cowork is Anthropic's agentic AI system for knowledge workers (not developers), available as a research preview
+in the Claude Desktop app (Mac/Windows) and claude.ai. Unlike Claude Chat (one prompt → one response), Cowork
+autonomously plans and executes multi-step tasks on your local machine.
 
-**Target users:** Researchers, analysts, operations, legal, finance — anyone doing time-consuming document/data/file work.
+**Target users:** Researchers, analysts, operations, legal, finance — anyone doing time-consuming document/data/file
+work.
 
 **Requirements:** Paid plan (Pro, Max, Team, Enterprise), Claude Desktop app or claude.ai, code execution enabled.
 
@@ -51,9 +68,11 @@ Skills are the only extension mechanism. Cowork ships with four pre-built Skills
 - **Word (docx)** — create/edit/format documents
 - **PDF (pdf)** — generate formatted PDF documents and reports
 
-Custom Skills are uploaded as **ZIP files** via **Settings > Features**. Available on Pro, Max, Team, and Enterprise plans.
+Custom Skills are uploaded as **ZIP files** via **Settings > Features**. Available on Pro, Max, Team, and Enterprise
+plans.
 
-**Sharing:** Custom Skills are per-user only. Each team member must upload separately. No org-wide or admin-managed distribution on claude.ai.
+**Sharing:** Custom Skills are per-user only. Each team member must upload separately. No org-wide or admin-managed
+distribution on claude.ai.
 
 ---
 
@@ -104,15 +123,9 @@ For form filling, see [FORMS.md](FORMS.md).
 
 ```
 
-your-skill/
-├── SKILL.md # Required: frontmatter + instructions
-├── FORMS.md # Optional: referenced as-needed
-├── reference/
-│ ├── finance.md # Optional: domain-specific reference
-│ └── sales.md
-└── scripts/
-├── process.py # Optional: utility scripts (executed, not read)
-└── validate.py
+your-skill/ ├── SKILL.md # Required: frontmatter + instructions ├── FORMS.md # Optional: referenced as-needed ├──
+reference/ │ ├── finance.md # Optional: domain-specific reference │ └── sales.md └── scripts/ ├── process.py # Optional:
+utility scripts (executed, not read) └── validate.py
 
 ````
 
@@ -175,8 +188,7 @@ description: Helps with documents
 ```markdown
 ## Advanced features
 
-**Form filling**: See [FORMS.md](FORMS.md)
-**API reference**: See [REFERENCE.md](REFERENCE.md)
+**Form filling**: See [FORMS.md](FORMS.md) **API reference**: See [REFERENCE.md](REFERENCE.md)
 ```
 
 **Pattern 2 — Domain-specific organization:**
@@ -193,11 +205,12 @@ bigquery-skill/
 **Pattern 3 — Conditional details:**
 
 ```markdown
-For tracked changes: See [REDLINING.md](REDLINING.md)
-For OOXML details: See [OOXML.md](OOXML.md)
+For tracked changes: See [REDLINING.md](REDLINING.md) For OOXML details: See [OOXML.md](OOXML.md)
 ```
 
-Keep all references **one level deep** from SKILL.md. Avoid nested references (SKILL.md → A.md → B.md) — Claude may only partially read nested files.
+Keep all references **one level deep** from SKILL.md, and open any reference file over roughly 100 lines with a contents
+list. Neither rule is specific to cowork; both are in
+[Skill Reference Files](./skill-reference-files.md#keep-reference-links-one-level-deep-from-skillmd).
 
 ### Degrees of freedom
 
@@ -237,7 +250,9 @@ Use gerund form (verb + -ing):
 - `processing-pdfs`, `analyzing-spreadsheets`, `managing-databases`
 - Avoid: `helper`, `utils`, `tools`, `documents`
 
-This gerund preference is the general Anthropic convention, not Cowork-specific. [Naming Conventions](./naming-conventions.md) is the canonical doc for skill and plugin naming; it covers the same gerund rule plus directory-name, dependency-prefix, and case-sensitivity rules.
+This gerund preference is the general Anthropic convention, not Cowork-specific.
+[Naming Conventions](./naming-conventions.md) is the canonical doc for skill and plugin naming; it covers the same
+gerund rule plus directory-name, dependency-prefix, and case-sensitivity rules.
 
 ---
 
@@ -250,6 +265,7 @@ This gerund preference is the general Anthropic convention, not Cowork-specific.
 - [ ] No time-sensitive information
 - [ ] Consistent terminology throughout
 - [ ] File references are one level deep from SKILL.md
+- [ ] Reference files over roughly 100 lines open with a contents list
 - [ ] Workflows have clear numbered steps
 
 **Code and scripts**
